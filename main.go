@@ -89,6 +89,9 @@ func (g *Game) Update() error {
     }
 
 	g.counter++
+    if g.counter > 61 {
+        g.counter = 0
+    }
 	return nil
 }
 
@@ -103,13 +106,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	text.Draw(screen, t, txtFace, txtOp)
-
-	curOp := &ebiten.DrawImageOptions{}
-	curOp.GeoM.Translate(
-        g.cursor.getGraphicalX(txtFace),
-        g.cursor.getGraphicalY(lineSpacing),
-    )
-	screen.DrawImage(cursorImg, curOp)
+    if g.counter%60 < 30 {
+        curOp := &ebiten.DrawImageOptions{}
+        curOp.GeoM.Translate(
+            g.cursor.getGraphicalX(txtFace),
+            g.cursor.getGraphicalY(lineSpacing),
+        )
+        screen.DrawImage(cursorImg, curOp)
+    }
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
