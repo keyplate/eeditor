@@ -21,7 +21,7 @@ func (c *Cursor) moveCursorUp() {
 	}
 	//If above is too short to jump directly above, we jump to the end of the line
 	if c.cursorMap[c.y-1] < c.x {
-		c.x = c.cursorMap[c.y-1] - 1
+		c.x = c.cursorMap[c.y-1]
 	} else {
     	c.x = c.preferredX
     } 
@@ -35,7 +35,7 @@ func (c *Cursor) moveCursorDown() {
 	}
 	//If a line is too short to jump directly below, we jump to the end of the line
 	if c.cursorMap[c.y+1] < c.x {
-		c.x = c.cursorMap[c.y+1] - 1
+		c.x = c.cursorMap[c.y+1]
 	} else {
         c.x = c.preferredX
     }
