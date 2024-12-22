@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"image/color"
 	"log"
-	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -18,22 +17,24 @@ const (
 )
 
 var (
-    jetBrainsMonoFaceSource *text.GoTextFaceSource
-    fontSize int
-    cursorImg *ebiten.Image
+	jetBrainsMonoFaceSource *text.GoTextFaceSource
+	cursorImg               *ebiten.Image
+	fontSize                float64
+    lineSpacing             float64
 )
 
 func init() {
-    fontSize = 14
+	fontSize = 14
+    lineSpacing = float64(fontSize) * 1.2
 
-    s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
-    if err != nil {
-        log.Fatal(err)
-    }
-    jetBrainsMonoFaceSource = s
- 
-    cursorImg = ebiten.NewImage(2, 14)
-    cursorImg.Fill(color.White)
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
+	if err != nil {
+		log.Fatal(err)
+	}
+	jetBrainsMonoFaceSource = s
+
+	cursorImg = ebiten.NewImage(2, 14)
+	cursorImg.Fill(color.White)
 }
 
 func repeatingKeyPressed(key ebiten.Key) bool {
@@ -51,30 +52,18 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 	return false
 }
 
-func getCursorMap(text string) []int {
-    lines := strings.Split(text, "\n")
-    linesLen := make([]int, len(lines)) 
-
-    for i, line := range(lines) {
-        linesLen[i] = len(line)
-    }
-    
-    return linesLen
-}
-
 type Game struct {
 	runes   []rune
 	text    string
 	counter int
-    cursorMap []int
-    cursorPosX int
-    cursorPosY int
+	cursor  Cursor
 }
 
 func (g *Game) Update() error {
 	g.runes = ebiten.AppendInputChars(g.runes[:0])
 	g.text += string(g.runes)
-    
+	g.cursor.updateCursorMap(g.text)
+
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyNumpadEnter) {
 		g.text += "\n"
 	}
@@ -85,26 +74,42 @@ func (g *Game) Update() error {
 		}
 	}
 
-    g.cursorMap = getCursorMap(g.text) 
+	if repeatingKeyPressed(ebiten.KeyArrowUp) {
+		g.cursor.moveCursorUp()
+	}
+
+	if repeatingKeyPressed(ebiten.KeyArrowDown) {
+		g.cursor.moveCursorDown()
+	}
+    if repeatingKeyPressed(ebiten.KeyArrowLeft) {
+        g.cursor.moveCursorLeft()
+    }
+    if repeatingKeyPressed(ebiten.KeyArrowRight) {
+        g.cursor.moveCursorRight()
+    }
+
 	g.counter++
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	t := g.text
-    
-    txtOp := &text.DrawOptions{}
-    txtOp.LineSpacing = 14 * 1.2
-    txtFace := &text.GoTextFace{
-        Source: jetBrainsMonoFaceSource,
-        Size: 14,
-    } 
 
-    text.Draw(screen, t, txtFace, txtOp)
+	txtOp := &text.DrawOptions{}
+	txtOp.LineSpacing = lineSpacing
+	txtFace := &text.GoTextFace{
+		Source: jetBrainsMonoFaceSource,
+		Size:   fontSize,
+	}
 
-    curOp := &ebiten.DrawImageOptions{}
-    curOp.GeoM.Translate(float64(g.cursorPosX), float64(g.cursorPosY))
-    screen.DrawImage(cursorImg, curOp)
+	text.Draw(screen, t, txtFace, txtOp)
+
+	curOp := &ebiten.DrawImageOptions{}
+	curOp.GeoM.Translate(
+        g.cursor.getGraphicalX(txtFace),
+        g.cursor.getGraphicalY(lineSpacing),
+    )
+	screen.DrawImage(cursorImg, curOp)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -112,7 +117,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
-    g := &Game{
+	g := &Game{
 		text:    "",
 		counter: 0,
 	}
