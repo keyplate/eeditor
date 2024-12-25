@@ -47,10 +47,10 @@ func (c *Cursor) moveCursorLeft() {
     if c.y == 0 && c.x == 0 {
         return
     }
-    //If cursor is in the edge left position move it to the end of the line below
+    //If cursor is in the edge left position move it to the end of the line above
     if c.x == 0 {
         c.y--
-        c.x = c.cursorMap[c.y] - 1
+        c.x = c.cursorMap[c.y]
     } else {
         c.x--
     }
@@ -63,7 +63,7 @@ func (c *Cursor) moveCursorRight() {
     if c.y == len(c.cursorMap) - 1 && c.x == c.cursorMap[len(c.cursorMap) - 1] {
         return
     }
-    //If cursor is in the edge right position move it to the start of the line above
+    //If cursor is in the edge right position move it to the below of the line above
     if c.x == c.cursorMap[c.y] {
         c.y++
         c.x = 0
