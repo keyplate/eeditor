@@ -9,6 +9,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/keyplate/eeditor/resources/fonts"
+
+    gap "codeberg.org/Release-Candidate/go-gap-buffer"
 )
 
 const (
@@ -54,38 +56,46 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 
 type Game struct {
 	runes   []rune
-	text    string
+    gapBuffer gap.GapBuffer
 	counter int
 	cursor  Cursor
 }
 
 func (g *Game) Update() error {
 	g.runes = ebiten.AppendInputChars(g.runes[:0])
-	g.text += string(g.runes)
-	g.cursor.updateCursorMap(g.text)
+	g.gapBuffer.Insert(string(g.runes))
 
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyNumpadEnter) {
-		g.text += "\n"
+		g.gapBuffer.Insert("\n")
+        g.cursor.updateCursorMap(g.gapBuffer.String())
+        g.cursor.moveCursorRight()
 	}
 
 	if repeatingKeyPressed(ebiten.KeyBackspace) {
-		if len(g.text) >= 1 {
-			g.text = g.text[:len(g.text)-1]
-		}
+        g.cursor.moveCursorLeft()
+        g.gapBuffer.LeftDel()
 	}
+
+    g.cursor.updateCursorMap(g.gapBuffer.String())
+    for _, _ = range g.runes {
+        g.cursor.moveCursorRight()
+    }
 
 	if repeatingKeyPressed(ebiten.KeyArrowUp) {
 		g.cursor.moveCursorUp()
+        g.gapBuffer.UpMv()
 	}
-
 	if repeatingKeyPressed(ebiten.KeyArrowDown) {
 		g.cursor.moveCursorDown()
+        g.gapBuffer.DownMv()
 	}
     if repeatingKeyPressed(ebiten.KeyArrowLeft) {
         g.cursor.moveCursorLeft()
+        g.gapBuffer.LeftMv()
     }
     if repeatingKeyPressed(ebiten.KeyArrowRight) {
         g.cursor.moveCursorRight()
+        g.gapBuffer.RightMv()
     }
 
 	g.counter++
@@ -96,7 +106,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	t := g.text
+	t := g.gapBuffer.String()
 
 	txtOp := &text.DrawOptions{}
 	txtOp.LineSpacing = lineSpacing
@@ -122,7 +132,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	g := &Game{
-		text:    "",
+		gapBuffer: *gap.New(),
 		counter: 0,
 	}
 
