@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/keyplate/eeditor/resources/fonts"
 
-    gap "codeberg.org/Release-Candidate/go-gap-buffer"
+	gap "codeberg.org/Release-Candidate/go-gap-buffer"
 )
 
 const (
@@ -22,12 +22,12 @@ var (
 	jetBrainsMonoFaceSource *text.GoTextFaceSource
 	cursorImg               *ebiten.Image
 	fontSize                float64
-    lineSpacing             float64
+	lineSpacing             float64
 )
 
 func init() {
 	fontSize = 14
-    lineSpacing = float64(fontSize) * 1.2
+	lineSpacing = float64(fontSize) * 1.2
 
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
 	if err != nil {
@@ -55,10 +55,10 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 }
 
 type Game struct {
-	runes   []rune
-    gapBuffer gap.GapBuffer
-	counter int
-	cursor  Cursor
+	runes     []rune
+	gapBuffer gap.GapBuffer
+	counter   int
+	cursor    Cursor
 }
 
 func (g *Game) Update() error {
@@ -67,41 +67,41 @@ func (g *Game) Update() error {
 
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyNumpadEnter) {
 		g.gapBuffer.Insert("\n")
-        g.cursor.updateCursorMap(g.gapBuffer.String())
-        g.cursor.moveCursorRight()
+		g.cursor.updateCursorMap(g.gapBuffer.String())
+		g.cursor.moveCursorRight()
 	}
 
 	if repeatingKeyPressed(ebiten.KeyBackspace) {
-        g.cursor.moveCursorLeft()
-        g.gapBuffer.LeftDel()
+		g.cursor.moveCursorLeft()
+		g.gapBuffer.LeftDel()
 	}
 
-    g.cursor.updateCursorMap(g.gapBuffer.String())
-    for _, _ = range g.runes {
-        g.cursor.moveCursorRight()
-    }
+	g.cursor.updateCursorMap(g.gapBuffer.String())
+	for _, _ = range g.runes {
+		g.cursor.moveCursorRight()
+	}
 
 	if repeatingKeyPressed(ebiten.KeyArrowUp) {
 		g.cursor.moveCursorUp()
-        g.gapBuffer.UpMv()
+		g.gapBuffer.UpMv()
 	}
 	if repeatingKeyPressed(ebiten.KeyArrowDown) {
 		g.cursor.moveCursorDown()
-        g.gapBuffer.DownMv()
+		g.gapBuffer.DownMv()
 	}
-    if repeatingKeyPressed(ebiten.KeyArrowLeft) {
-        g.cursor.moveCursorLeft()
-        g.gapBuffer.LeftMv()
-    }
-    if repeatingKeyPressed(ebiten.KeyArrowRight) {
-        g.cursor.moveCursorRight()
-        g.gapBuffer.RightMv()
-    }
+	if repeatingKeyPressed(ebiten.KeyArrowLeft) {
+		g.cursor.moveCursorLeft()
+		g.gapBuffer.LeftMv()
+	}
+	if repeatingKeyPressed(ebiten.KeyArrowRight) {
+		g.cursor.moveCursorRight()
+		g.gapBuffer.RightMv()
+	}
 
 	g.counter++
-    if g.counter > 61 {
-        g.counter = 0
-    }
+	if g.counter > 61 {
+		g.counter = 0
+	}
 	return nil
 }
 
@@ -116,14 +116,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	text.Draw(screen, t, txtFace, txtOp)
-    if g.counter%60 < 30 {
-        curOp := &ebiten.DrawImageOptions{}
-        curOp.GeoM.Translate(
-            g.cursor.getGraphicalX(txtFace),
-            g.cursor.getGraphicalY(lineSpacing),
-        )
-        screen.DrawImage(cursorImg, curOp)
-    }
+	if g.counter%60 < 30 {
+		curOp := &ebiten.DrawImageOptions{}
+		curOp.GeoM.Translate(
+			g.cursor.getGraphicalX(txtFace),
+			g.cursor.getGraphicalY(lineSpacing),
+		)
+		screen.DrawImage(cursorImg, curOp)
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -133,7 +133,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	g := &Game{
 		gapBuffer: *gap.New(),
-		counter: 0,
+		counter:   0,
 	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
