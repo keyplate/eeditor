@@ -12,30 +12,13 @@ import (
 	gap "codeberg.org/Release-Candidate/go-gap-buffer"
 )
 
-const (
-	screenWidth  = 640
-	screenHeight = 480
-)
-
-var (
+type editorConfig struct {
+	screenWidth             int
+	screenHeight            int
 	jetBrainsMonoFaceSource *text.GoTextFaceSource
 	cursorImg               *ebiten.Image
 	fontSize                float64
 	lineSpacing             float64
-)
-
-func init() {
-	fontSize = 14
-	lineSpacing = float64(fontSize) * 1.2
-
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
-	if err != nil {
-		log.Fatal(err)
-	}
-	jetBrainsMonoFaceSource = s
-
-	cursorImg = ebiten.NewImage(2, 14)
-	cursorImg.Fill(color.White)
 }
 
 type Game struct {
@@ -43,6 +26,7 @@ type Game struct {
 	gapBuffer gap.GapBuffer
 	counter   int
 	cursor    Cursor
+	cfg       editorConfig
 }
 
 func (g *Game) Update() error {
@@ -74,10 +58,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	t := g.gapBuffer.String()
 
 	txtOp := &text.DrawOptions{}
-	txtOp.LineSpacing = lineSpacing
+	txtOp.LineSpacing = g.cfg.lineSpacing
 	txtFace := &text.GoTextFace{
-		Source: jetBrainsMonoFaceSource,
-		Size:   fontSize,
+		Source: g.cfg.jetBrainsMonoFaceSource,
+		Size:   g.cfg.fontSize,
 	}
 
 	text.Draw(screen, t, txtFace, txtOp)
@@ -85,23 +69,40 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		curOp := &ebiten.DrawImageOptions{}
 		curOp.GeoM.Translate(
 			g.cursor.getGraphicalX(txtFace),
-			g.cursor.getGraphicalY(lineSpacing),
+			g.cursor.getGraphicalY(g.cfg.lineSpacing),
 		)
-		screen.DrawImage(cursorImg, curOp)
+		screen.DrawImage(g.cfg.cursorImg, curOp)
 	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
+	return g.cfg.screenWidth, g.cfg.screenHeight
 }
 
 func main() {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
+	if err != nil {
+		log.Fatal(err)
+	}
+	cursorImg := ebiten.NewImage(2, 14)
+	cursorImg.Fill(color.White)
+
+	cfg := editorConfig{
+		fontSize:                14,
+		lineSpacing:             16.8,
+		jetBrainsMonoFaceSource: s,
+		cursorImg:               cursorImg,
+		screenWidth:             640,
+		screenHeight:            480,
+	}
+
 	g := &Game{
 		gapBuffer: *gap.New(),
 		counter:   0,
+		cfg:       cfg,
 	}
 
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(g.cfg.screenWidth, g.cfg.screenHeight)
 	ebiten.SetWindowTitle("Editor")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
