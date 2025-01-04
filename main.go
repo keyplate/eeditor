@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/keyplate/eeditor/resources/fonts"
 
@@ -39,21 +38,6 @@ func init() {
 	cursorImg.Fill(color.White)
 }
 
-func repeatingKeyPressed(key ebiten.Key) bool {
-	const (
-		delay    = 30
-		interval = 3
-	)
-	d := inpututil.KeyPressDuration(key)
-	if d == 1 {
-		return true
-	}
-	if d >= delay && (d-delay)%interval == 0 {
-		return true
-	}
-	return false
-}
-
 type Game struct {
 	runes     []rune
 	gapBuffer gap.GapBuffer
@@ -63,40 +47,21 @@ type Game struct {
 
 func (g *Game) Update() error {
 	g.runes = ebiten.AppendInputChars(g.runes[:0])
-	g.gapBuffer.Insert(string(g.runes))
-
-	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyNumpadEnter) {
-		g.gapBuffer.Insert("\n")
-		g.cursor.updateCursorMap(g.gapBuffer.String())
-		g.cursor.moveCursorRight()
-	}
-
-	if repeatingKeyPressed(ebiten.KeyBackspace) {
-		g.cursor.moveCursorLeft()
-		g.gapBuffer.LeftDel()
+	if len(g.runes) > 0 {
+		g.gapBuffer.Insert(string(g.runes))
 	}
 
 	g.cursor.updateCursorMap(g.gapBuffer.String())
-	for _, _ = range g.runes {
+	for range g.runes {
 		g.cursor.moveCursorRight()
 	}
 
-	if repeatingKeyPressed(ebiten.KeyArrowUp) {
-		g.cursor.moveCursorUp()
-		g.gapBuffer.UpMv()
-	}
-	if repeatingKeyPressed(ebiten.KeyArrowDown) {
-		g.cursor.moveCursorDown()
-		g.gapBuffer.DownMv()
-	}
-	if repeatingKeyPressed(ebiten.KeyArrowLeft) {
-		g.cursor.moveCursorLeft()
-		g.gapBuffer.LeftMv()
-	}
-	if repeatingKeyPressed(ebiten.KeyArrowRight) {
-		g.cursor.moveCursorRight()
-		g.gapBuffer.RightMv()
-	}
+	g.enterPressed()
+	g.backspacePressed()
+	g.arrowUpPressed()
+	g.arrowDownPressed()
+	g.arrowLeftPressed()
+	g.arrowRightPressed()
 
 	g.counter++
 	if g.counter > 61 {
@@ -137,7 +102,7 @@ func main() {
 	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("EEditero")
+	ebiten.SetWindowTitle("Editor")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
