@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image/color"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -27,6 +28,7 @@ type Game struct {
 	counter   int
 	cursor    Cursor
 	cfg       editorConfig
+    file      *os.File
 }
 
 func (g *Game) Update() error {
@@ -80,6 +82,12 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
+    file, err := getFile()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer file.Close()
+
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
 	if err != nil {
 		log.Fatal(err)
@@ -100,8 +108,15 @@ func main() {
 		gapBuffer: *gap.New(),
 		counter:   0,
 		cfg:       cfg,
+        file:      file,
 	}
-
+   
+    content, err := loadFile(file)
+    if err != nil {
+        log.Fatal(err)
+    }
+    g.gapBuffer.Insert(content)
+    
 	ebiten.SetWindowSize(g.cfg.screenWidth, g.cfg.screenHeight)
 	ebiten.SetWindowTitle("Editor")
 	if err := ebiten.RunGame(g); err != nil {
