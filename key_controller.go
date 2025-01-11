@@ -46,7 +46,7 @@ func (g *Game) arrowDownPressed() {
 	if repeatingKeyPressed(ebiten.KeyArrowDown) {
 		g.cursor.moveCursorDown()
 		g.gapBuffer.DownMv()
-	}
+	 }
 }
 
 func (g *Game) arrowLeftPressed() {
@@ -61,4 +61,10 @@ func (g *Game) arrowRightPressed() {
 		g.cursor.moveCursorRight()
 		g.gapBuffer.RightMv()
 	}
+}
+
+func (g *Game) ctrlSPressed() {
+    if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyS) {
+        g.saveFile() 
+    }
 }

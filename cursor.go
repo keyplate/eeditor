@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -59,7 +58,6 @@ func (c *Cursor) moveCursorLeft() {
 
 func (c *Cursor) moveCursorRight() {
 	//If cursor is in the bottom right position do nothing
-	fmt.Print(c)
 	if c.y == len(c.cursorMap)-1 && c.x == c.cursorMap[len(c.cursorMap)-1] {
 		return
 	}

@@ -5,26 +5,37 @@ import (
 	"os"
 )
 
-func getFile() (*os.File, error) {
+func (g *Game)getFile() error {
     if len(os.Args) < 2 {
-        return nil, fmt.Errorf("Too few arguments")
+        return fmt.Errorf("Too few arguments")
     }
 
     filePath := os.Args[1]
     file, err := os.Open(filePath)
     if err != nil {
-        return nil, err
+        return err
     }
-
-    return file, nil
+    
+    g.file = file
+    return nil
 }
 
-func loadFile(file *os.File) (string, error) {
-    b, err := os.ReadFile(file.Name())
+func (g *Game)loadFile() error {
+    b, err := os.ReadFile(g.file.Name())
     if err != nil {
-        return "", err
+        return err
     }
-
-    return string(b), nil
+    
+    g.gapBuffer.Insert(string(b))
+    return  nil
 }
 
+func (g *Game)saveFile() error {
+    err := os.WriteFile(g.file.Name(), []byte(g.gapBuffer.String()), 0666)
+    
+    if err != nil {
+        return err
+    }
+
+    return nil
+}

@@ -48,6 +48,7 @@ func (g *Game) Update() error {
 	g.arrowDownPressed()
 	g.arrowLeftPressed()
 	g.arrowRightPressed()
+    g.ctrlSPressed()
 
 	g.counter++
 	if g.counter > 61 {
@@ -82,11 +83,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
-    file, err := getFile()
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer file.Close()
 
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.JetBrainsMonoRegular_ttf))
 	if err != nil {
@@ -108,14 +104,17 @@ func main() {
 		gapBuffer: *gap.New(),
 		counter:   0,
 		cfg:       cfg,
-        file:      file,
 	}
-   
-    content, err := loadFile(file)
+ 
+    err = g.getFile()
     if err != nil {
         log.Fatal(err)
     }
-    g.gapBuffer.Insert(content)
+    defer g.file.Close()
+    err = g.loadFile()
+    if err != nil {
+        log.Fatal(err)
+    }
     
 	ebiten.SetWindowSize(g.cfg.screenWidth, g.cfg.screenHeight)
 	ebiten.SetWindowTitle("Editor")
