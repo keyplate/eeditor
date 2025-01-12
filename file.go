@@ -27,6 +27,9 @@ func (g *Game)loadFile() error {
     }
     
     g.gapBuffer.Insert(string(b))
+    for i := g.gapBuffer.StringLength(); i > 0; i-- {
+        g.gapBuffer.LeftMv()
+    }
     return  nil
 }
 
